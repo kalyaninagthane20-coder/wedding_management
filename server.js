@@ -5,7 +5,13 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const path = require('path');
 
-try { process.loadEnvFile(path.join(__dirname, '.env')); } catch (e) { /* .env is optional */ }
+// Load .env by hand so it works on any Node version
+try {
+  require('fs').readFileSync(path.join(__dirname, '.env'), 'utf8').split(/\r?\n/).forEach((line) => {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
+    if (m && !line.trim().startsWith('#') && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
+  });
+} catch (e) { console.warn('No .env file found - using default MySQL settings (root, no password).'); }
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -326,4 +332,10 @@ app.post('/api/lab/query', wrap(async (req, res) => {
 }));
 
 const port = Number(process.env.PORT || 3000);
-app.listen(port, '127.0.0.1', () => console.log(`Wedding Management System running at http://localhost:${port}`));
+app.listen(port, '127.0.0.1', () => {
+  console.log(`Wedding Management System running at http://localhost:${port}`);
+  pool.query('SELECT COUNT(*) AS n FROM wedding').then(([[r]]) => console.log(`Database OK (${r.n} weddings found).`)).catch((e) => {
+    console.error('\n*** DATABASE PROBLEM ***\n' + (e.sqlMessage || e.message));
+    console.error('Check: 1) MySQL is running  2) you ran setup_database.bat  3) DB_USER / DB_PASSWORD in the .env file are correct\n');
+  });
+});

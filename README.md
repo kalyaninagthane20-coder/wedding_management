@@ -25,6 +25,20 @@ payments, budget, checklists and gifts.
 
 To reset all data to the original sample data, run `setup_database.bat` again.
 
+### Troubleshooting (for team members)
+
+| Problem | Fix |
+|---|---|
+| `Access denied for user 'root'` in the app | `.env` is missing or has the wrong `DB_PASSWORD`. The file must be named exactly `.env` (not `.env.txt`). |
+| `Unknown database 'wedding_db'` / tables missing | You skipped step 1. Run `setup_database.bat` (or `mysql -u root -p < sql/00_run_all.sql`). |
+| `setup_database.bat` says mysql is not recognized | Edit the `MYSQL=` path at the top of the .bat file to your `mysql.exe`, or add MySQL's `bin` folder to PATH. |
+| Errors like `syntax error near CHECK`, `(CURRENT_DATE)`, `OVER`, `WITH` | MySQL is too old (or it is MariaDB). Install **MySQL 8.0.16 or newer**. |
+| `node` / `npm` not recognized | Install Node.js (LTS) from nodejs.org, then run `npm install` in the project folder. |
+| Port 3000 already in use | Set `PORT=3001` in `.env` and open http://localhost:3001 |
+| Using Mac / Linux | Run `mysql -u root -p < sql/00_run_all.sql`, then `npm install && node server.js`. |
+
+The terminal window running the app prints `Database OK` when everything is connected, or the exact reason it is not.
+
 ## 2. Files
 
 | File | Purpose |
